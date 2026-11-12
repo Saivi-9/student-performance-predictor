@@ -1,90 +1,114 @@
-# 🎓 Student Performance Predictor (Machine Learning Project)
+# 🎓 Student Academic Performance Predictor Studio (v2.0)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-v1.3+-orange.svg)](https://scikit-learn.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.40%2B-FF4B4B.svg)](https://streamlit.io/)
-[![Tests](https://img.shields.io/badge/Tests-17%2F17%20Passing-brightgreen.svg)](tests/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9%2B-orange.svg)](https://scikit-learn.org/)
+[![LightGBM](https://img.shields.io/badge/LightGBM-4.7-success.svg)](https://lightgbm.readthedocs.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.162-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19%20%2B%20Vite-61DAFB.svg)](https://react.dev/)
+[![Hugging Face Hub](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Pretrained%20Hub-yellow.svg)](https://huggingface.co/)
+[![Tests](https://img.shields.io/badge/Tests-28%2F28%20Passing-brightgreen.svg)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An end-to-end, production-structured machine learning project designed for portfolio showcases and educational decision support. This project demonstrates how to ingest data, handle missing values, engineer informative behavioral features, build leak-free scikit-learn preprocessing pipelines, perform $k$-fold cross-validation and hyperparameter grid tuning, interpret model predictions via permutation importance, and deploy an interactive Streamlit web dashboard and CLI inference tool.
+An end-to-end machine learning engineering platform and real-time analytics studio built for student performance forecasting, academic intervention simulation, and Hugging Face pre-trained model benchmarking.
 
 ---
 
-## 📌 Problem Overview
+## ✨ What's New in v2.0
 
-Can we reliably estimate a student's final examination score based on their study habits, attendance record, and socioeconomic factors?
+1. **20x More Training Data & Multi-Source Benchmarks (`data/`)**:
+   - **Primary Cohort (`data/student_data.csv`)**: **20,000 student records** across **20 raw features** and non-linear educational/biological dynamics with realistic ~1.0–1.8% missingness.
+   - **Real Open Benchmarks (`data/fetch_external.py`)**: Automatically fetches & caches Hugging Face's **UCI Student Performance (Math + Portuguese)** (`1,044` rows × `34` cols via `DElmazi/Student_Performance`) and **10K Student Performance Index** (`10,000` rows × `6` cols via `imranx654/Student-Performance-Predictor`).
 
-By identifying key academic drivers and predicting final outcomes, educational institutions and mentors can implement targeted academic interventions before final exams.
+2. **28 Total Pipeline Features (`src/features.py`, `src/pipeline.py`)**:
+   - **20 Raw Features**:
+     - *Academic (6)*: `previous_score`, `quiz_average`, `hours_studied`, `attendance_percent`, `assignment_completion_rate`, `practice_papers_solved`
+     - *Wellbeing & Habits (6)*: `sleep_hours`, `tutoring_sessions`, `physical_activity_hours`, `screen_time_hours`, `stress_level`, `commute_minutes`
+     - *Support & Context (8)*: `parental_involvement`, `motivation_level`, `access_to_resources`, `parental_education`, `extracurricular`, `internet_access`, `school_type`, `learning_style`
+   - **8 Leak-Free Engineered Composite Features** (computed inside `AcademicFeatureEngineer` fitted strictly on `X_train`):
+     - `study_efficiency`, `academic_momentum`, `sleep_deficit`, `engagement_score`, `study_sleep_balance`, `digital_distraction_ratio`, `formative_delta`, `wellbeing_index`
 
----
+3. **9-Model Cross-Validation Tournament (`src/models.py`, `train.py`)**:
+   - Benchmarks **MLP Neural Network**, **Stacking Ensemble**, **LightGBM**, **HistGradientBoosting**, **Ridge Regression**, **Linear Regression**, **ElasticNet**, **Extra Trees**, and **Random Forest** using 5-fold CV and strict 70/15/15 Train/Val/Test splits.
+   - All 9 trained model pipelines are saved to `saved_models/registry/` for real-time switching in the UI and REST API.
 
-## 🔬 Key Machine Learning Concepts Demonstrated
+4. **Hugging Face Pre-Trained Model & Dataset Hub (`src/pretrained_hub.py`)**:
+   - Live keyword search across Hugging Face models and datasets (`search_huggingface_models`, `search_huggingface_datasets`).
+   - Curated catalog + real benchmark evaluation & live inference on community pre-trained models:
+     - `Shalan1/student-performance-predictor-models` (Random Forest Regressor evaluated on 10K dataset: **$R^2 = 0.9952$**, RMSE `1.330`)
+     - `SergeyR256/student-performance` (37-feature UCI Random Forest Pipeline evaluated on 649 Portuguese students: **$R^2 = 0.6454$**, RMSE `1.922`)
 
-1. **Strict Featurization Ordering (No Data Leakage)**:
-   - The dataset is split into **Train (70%)**, **Validation (15%)**, and **Test (15%)** sets *before* fitting any scalers, encoders, or imputers.
-   - All transformations are computed strictly on the training set and applied downstream.
-
-2. **Feature Engineering Module (`src/features.py`)**:
-   - `study_efficiency`: Study hours relative to tutoring session support.
-   - `academic_momentum`: Weighted combination of prior benchmark scores and attendance rate.
-   - `sleep_deficit`: Absolute deviation from recommended 8-hour sleep window.
-   - `engagement_score`: Composite normalized engagement index across attendance, study, and tutoring.
-
-3. **Unified Preprocessing Pipeline (`ColumnTransformer`)**:
-   - **Numerical Features**: Imputed using the `median` and scaled via `StandardScaler` (Z-score normalization).
-   - **Ordinal Features**: Imputed using `most_frequent` and mapped using `OrdinalEncoder` (`Low` < `Medium` < `High`).
-   - **Nominal Categorical Features**: Imputed using `most_frequent` and transformed via `OneHotEncoder(drop='first')` to prevent the dummy variable trap.
-
-4. **5-Fold Cross-Validation & Automated Hyperparameter Grid Tuning (`tune.py`)**:
-   - Benchmarks **Linear Regression**, regularized **Ridge Regression** (with optimal $L_2$ alpha search), and non-linear **Random Forest Regressors**.
-
-5. **Model Interpretability & Explainability (`src/explainability.py`)**:
-   - Permutation Feature Importance calculating drops in validation $R^2$.
-   - Single-student 'What-If' sensitivity analysis profiling intervention trajectories.
-
-6. **Interactive Streamlit Web Dashboard & CLI Inference**:
-   - Multi-tab decision support web application (`app.py`) and command-line inference tool (`predict.py`).
+5. **Real-Time Interactive Studio UI (`frontend/` + `src/api/` + `app.py`)**:
+   - **FastAPI + React/Vite Studio (`api_server.py`)**: Live 20-slider forecaster with instant confidence intervals & local factor attributions, live engine switcher across all 9 models, 9-lever What-If Sensitivity Curve simulator, real benchmark & residual scatter explorer, HF Pre-Trained Hub search/comparison, and batch cohort scoring.
+   - **Streamlit Multi-Tab Dashboard (`app.py`)**: Interactive 5-tab analytics & batch CSV scoring workflow.
 
 ---
 
-## 📊 Dataset Schema
+## 🏆 9-Model Benchmark Tournament Results (20,000 Students, 28 Features)
 
-The dataset contains 1,000 student records with 8 predictive features and a continuous target:
+| Architecture | 5-Fold CV RMSE | Val RMSE | Val $R^2$ | Test RMSE | Test MAE | Test $R^2$ |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **MLP Neural Network (Champion)** | **2.489** | **2.429** | **0.9716** | **2.508** | **2.008** | **0.9688** |
+| **Stacking Ensemble** | 2.532 | 2.477 | 0.9704 | 2.544 | 2.020 | 0.9679 |
+| **LightGBM** | 2.561 | 2.515 | 0.9695 | 2.561 | 2.021 | 0.9675 |
+| **HistGradientBoosting** | 2.588 | 2.544 | 0.9688 | 2.617 | 2.059 | 0.9660 |
+| **Ridge Regression** | 2.997 | 2.892 | 0.9597 | 2.941 | 2.265 | 0.9571 |
+| **Linear Regression** | 2.997 | 2.892 | 0.9597 | 2.941 | 2.265 | 0.9571 |
+| **ElasticNet** | 3.019 | 2.921 | 0.9589 | 2.963 | 2.293 | 0.9564 |
+| **Extra Trees** | 3.376 | 3.323 | 0.9468 | 3.375 | 2.639 | 0.9435 |
+| **Random Forest** | 3.493 | 3.442 | 0.9429 | 3.473 | 2.701 | 0.9402 |
 
-| Feature Name | Type | Description | Values / Range |
-| :--- | :--- | :--- | :--- |
-| `hours_studied` | Numerical | Weekly hours dedicated to independent study | `1.0` - `12.0` hrs |
-| `attendance_percent` | Numerical | School attendance rate | `50.0%` - `100.0%` |
-| `previous_score` | Numerical | Score achieved on previous midterm test | `35.0` - `98.0` / 100 |
-| `sleep_hours` | Numerical | Average sleep duration per night | `4.0` - `10.0` hrs |
-| `tutoring_sessions` | Numerical | Number of tutoring sessions attended | `0` - `8` sessions |
-| `parental_involvement`| Categorical (Ordinal) | Level of parental academic support | `Low`, `Medium`, `High` |
-| `extracurricular` | Categorical (Nominal) | Participation in school clubs / sports | `Yes`, `No` |
-| `internet_access` | Categorical (Nominal) | High-speed internet access at home | `Yes`, `No` |
-| **`final_score`** | **Target (Continuous)** | **Final examination outcome** | **`0.0` - `100.0` pts** |
+Diagnostic figures exported automatically by `train.py` into `reports/figures/`:
+- `model_comparison.png`, `actual_vs_predicted.png`, `residual_plot.png`, `feature_importance.png`
+- Full telemetry saved to `reports/benchmark_results.json`
 
 ---
 
-## 🏆 Model Benchmark & Performance
+## 🚀 Quickstart Guide
 
-Evaluation results on the validation and unseen test sets:
+### 1. Environment Setup
+```bash
+git clone https://github.com/Saivi-9/student-performance-predictor.git
+cd student-performance-predictor
 
-| Model | 5-Fold CV RMSE | Val MAE | Val RMSE | Val R² Score |
-| :--- | :---: | :---: | :---: | :---: |
-| **Linear Regression (Champion)** | **3.203** | **2.442** | **3.146** | **0.8481** |
-| **Ridge Regression** | 3.202 | 2.444 | 3.148 | 0.8479 |
-| **Random Forest Regressor** | 4.084 | 3.357 | 4.275 | 0.7195 |
+python -m venv .venv
+# Windows:
+.\.venv\Scripts\activate
+# macOS / Linux:
+source .venv/bin/activate
 
-### Final Evaluation on Unseen Test Set (Champion Model)
-- **Mean Absolute Error (MAE)**: `2.366` points
-- **Root Mean Squared Error (RMSE)**: `2.984` points
-- **R² Score**: `0.8385` (explains **~83.9%** of score variance)
-- **Explained Variance**: `0.8388`
+pip install -r requirements.txt
+```
 
-Generated evaluation charts are stored in `reports/figures/`:
-- `model_comparison.png`: Side-by-side benchmark bar chart.
-- `actual_vs_predicted.png`: Scatter plot with diagonal perfect-fit line ($y = x$).
-- `residual_plot.png`: Homoscedasticity verification checking residual distribution.
+### 2. Run Full 9-Model Training Pipeline (Optional — Pre-Trained Weights Included)
+Generates/loads the 20k dataset, caches external UCI & HF 10K datasets, benchmarks all 9 models via 5-fold CV, and saves `saved_models/best_model.joblib` + `saved_models/registry/*.joblib`:
+```bash
+python train.py
+```
+
+### 3. Launch the Real-Time Web Studio (FastAPI + Built React App)
+```bash
+python api_server.py --port 8001
+```
+Then open **`http://localhost:8001`** in your browser for the full real-time studio, or **`http://localhost:8001/docs`** for interactive OpenAPI/Swagger documentation.
+
+To launch the Streamlit dashboard alternatively:
+```bash
+streamlit run app.py
+```
+
+### 4. CLI Hyperparameter Tuning & Inference
+```bash
+# Tune LightGBM, Ridge, or Random Forest with k-fold CV
+python tune.py --model lgbm --cv 5 --save
+
+# Run single-student CLI prediction using any registered model
+python predict.py --hours 14 --attendance 92 --prev-score 82 --model-slug lightgbm
+```
+
+### 5. Run Full Unit & API Test Suite
+```bash
+pytest tests/ -v
+```
 
 ---
 
@@ -92,115 +116,32 @@ Generated evaluation charts are stored in `reports/figures/`:
 
 ```text
 student-performance-predictor/
+├── api_server.py                     # Uvicorn entrypoint serving FastAPI + React/Vite UI
+├── app.py                            # 5-tab Streamlit Analytics Dashboard
+├── train.py                          # 9-model CV tournament, HF dataset cache & reporting
+├── tune.py                           # Hyperparameter tuning CLI (Ridge, RF, LightGBM)
+├── predict.py                        # 20-feature CLI predictor with --model-slug switching
 ├── data/
-│   ├── generate_dataset.py           # Reproducible synthetic dataset generator
-│   └── student_data.csv              # Student tabular dataset (1,000 samples)
-├── notebooks/
-│   └── student_performance_eda.ipynb # Narrative-driven exploratory analysis
-├── reports/
-│   └── figures/                      # Exported high-res diagnostic plots
-│       ├── actual_vs_predicted.png
-│       ├── model_comparison.png
-│       └── residual_plot.png
-├── saved_models/
-│   └── best_model.joblib             # Serialized champion scikit-learn pipeline
+│   ├── generate_dataset.py           # 20,000-row, 20-feature non-linear dataset generator
+│   ├── fetch_external.py             # UCI & HF 10K real open dataset downloader/cacher
+│   └── student_data.csv              # Primary cohort dataset
+├── frontend/                         # React 19 + TypeScript + Vite + Tailwind Studio UI
+│   └── src/components/
+│       ├── StudentForecaster.tsx     # 20-feature real-time predictor & factor attributions
+│       ├── SimulationStudio.tsx      # 9-lever sensitivity curve simulator
+│       ├── ModelBenchmarks.tsx       # Live tournament leaderboard & scatter diagnostics
+│       └── PretrainedHub.tsx         # HF Hub search, benchmark, cohort & batch scorer
 ├── src/
-│   ├── __init__.py
-│   ├── dataset.py                    # Ingestion, validation, and leak-free splitting
-│   ├── evaluate.py                   # Regression metrics and plotting utilities
-│   ├── explainability.py             # Permutation feature importance & What-If trajectories
-│   ├── features.py                   # Engineered domain features & composite scores
-│   ├── models.py                     # Estimator definitions & cross-validation
-│   ├── pipeline.py                   # ColumnTransformer and scikit-learn Pipelines
-│   └── tuning.py                     # Automated GridSearchCV hyperparameter optimization
-├── tests/
-│   ├── test_explainability.py        # Tests for importance & sensitivity simulations
-│   ├── test_features.py              # Tests for engineered features & missing value resilience
-│   ├── test_pipeline.py              # Tests for leak-free transformations & candidates
-│   └── test_tuning.py                # Tests for Ridge & Random Forest parameter tuning
-├── app.py                            # Interactive multi-tab Streamlit web application
-├── predict.py                        # Real-time CLI inference script
-├── tune.py                           # CLI for automated hyperparameter optimization
-├── train.py                          # Master training orchestration script
-├── pytest.ini                        # Pytest test configuration
-├── requirements.txt                  # Project package dependencies
-└── README.md                         # Project documentation
-```
-
----
-
-## 🚀 Quickstart Guide
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/Saivi-9/student-performance-predictor.git
-cd student-performance-predictor
-```
-
-### 2. Set Up Virtual Environment & Dependencies
-```bash
-# Windows
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-
-# Linux / macOS
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 3. Launch Interactive Streamlit Web Application
-Launch the multi-tab decision support dashboard:
-```bash
-streamlit run app.py
-```
-**Dashboard Features:**
-- 🎯 **Live Score Forecasting:** Real-time exam score projection with institutional grade badges (Grade A to F) and study density metrics.
-- 🔮 **'What-If' Intervention Studio:** Interactive sensitivity simulator testing how incremental changes in study hours, attendance, or tutoring alter the student's projected grade tier.
-- 📊 **Explainability & Transparency:** Global permutation feature importance showing empirical score drops when features are disrupted.
-- 📈 **Benchmark & Model Diagnostics:** Review test set actual-vs-predicted correlations and error homoscedasticity.
-
-### 4. Automated Hyperparameter Grid Tuning CLI
-Execute systematic grid search cross-validation to optimize model hyperparameters:
-```bash
-# Tune Ridge regression L2 penalty with 5-fold CV and save the champion pipeline
-python tune.py --model ridge --cv 5 --save
-
-# Tune Random Forest tree depth and split criteria with 5-fold CV
-python tune.py --model rf --cv 5
-```
-
-### 5. Run the Master Training Pipeline
-Trains candidate models, executes 5-fold cross-validation, benchmarks test set performance, and exports diagnostic plots to `reports/figures/`:
-```bash
-python train.py
-```
-
-### 6. Run CLI Predictions
-
-**Interactive Questionnaire Mode:**
-```bash
-python predict.py
-```
-
-**Single Command Flag Mode:**
-```bash
-python predict.py --hours 7.5 --attendance 92.0 --prev-score 85.0 --sleep 8.0 --tutoring 3 --parental High --extracurricular Yes --internet Yes
-```
-Output:
-```text
-Predicted Score: 94.2 | Tier: Grade A (Excellent - Outstanding Performance)
-```
-
-### 7. Run Full Unit Test Suite
-Execute all 17 passing unit tests across feature engineering, leak-free pipelines, explainability, and tuning:
-```bash
-pytest tests/ -v
-```
-Output:
-```text
-============================= 17 passed in 14.46s =============================
+│   ├── dataset.py                    # Schema validation & leak-free 70/15/15 splitter
+│   ├── features.py                   # 8 composite features + AcademicFeatureEngineer
+│   ├── pipeline.py                   # End-to-end ColumnTransformer + estimator pipelines
+│   ├── models.py                     # 9 model architectures & CV tournament runner
+│   ├── pretrained_hub.py             # Hugging Face Hub search, catalog & benchmarking
+│   ├── tuning.py                     # GridSearchCV / RandomizedSearchCV utilities
+│   ├── explainability.py             # Permutation importance & What-If trajectories
+│   └── api/                          # FastAPI routes & Pydantic v2 schemas
+├── tests/                            # 28 unit & integration tests across ML & REST API
+└── reports/                          # Benchmark JSON telemetry & diagnostic charts
 ```
 
 ---

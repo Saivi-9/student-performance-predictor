@@ -1,0 +1,1149 @@
+{
+  "version": "2.0.0",
+  "champion_model": "MLP Neural Network",
+  "champion_slug": "mlp_neural_network",
+  "test_metrics": {
+    "MAE": 2.008,
+    "MSE": 6.29,
+    "RMSE": 2.508,
+    "R2": 0.9688,
+    "Explained_Variance": 0.9688
+  },
+  "dataset_summary": {
+    "total_rows": 20000,
+    "train_rows": 14000,
+    "val_rows": 3000,
+    "test_rows": 3000,
+    "raw_features": 20,
+    "engineered_features": 8,
+    "total_pipeline_features": 28,
+    "engineered_feature_names": [
+      "study_efficiency",
+      "academic_momentum",
+      "sleep_deficit",
+      "engagement_score",
+      "study_sleep_balance",
+      "digital_distraction_ratio",
+      "formative_delta",
+      "wellbeing_index"
+    ],
+    "missing_values_imputed": 1620,
+    "score_mean": 78.66,
+    "score_std": 14.23,
+    "numeric_stats": {
+      "hours_studied": {
+        "mean": 11.06,
+        "std": 5.36,
+        "min": 1.0,
+        "max": 34.3
+      },
+      "attendance_percent": {
+        "mean": 81.81,
+        "std": 9.9,
+        "min": 40.0,
+        "max": 100.0
+      },
+      "previous_score": {
+        "mean": 69.93,
+        "std": 12.08,
+        "min": 25.0,
+        "max": 99.0
+      },
+      "quiz_average": {
+        "mean": 72.21,
+        "std": 11.71,
+        "min": 27.5,
+        "max": 100.0
+      },
+      "assignment_completion_rate": {
+        "mean": 75.87,
+        "std": 12.89,
+        "min": 30.0,
+        "max": 100.0
+      },
+      "practice_papers_solved": {
+        "mean": 5.8,
+        "std": 2.42,
+        "min": 0.0,
+        "max": 15.0
+      },
+      "sleep_hours": {
+        "mean": 7.06,
+        "std": 1.24,
+        "min": 3.5,
+        "max": 11.0
+      },
+      "tutoring_sessions": {
+        "mean": 2.21,
+        "std": 1.49,
+        "min": 0.0,
+        "max": 10.0
+      },
+      "physical_activity_hours": {
+        "mean": 4.21,
+        "std": 2.04,
+        "min": 0.0,
+        "max": 14.0
+      },
+      "screen_time_hours": {
+        "mean": 3.61,
+        "std": 1.61,
+        "min": 0.5,
+        "max": 9.5
+      },
+      "stress_level": {
+        "mean": 4.01,
+        "std": 1.77,
+        "min": 1.0,
+        "max": 10.0
+      },
+      "commute_minutes": {
+        "mean": 29.86,
+        "std": 18.69,
+        "min": 5.0,
+        "max": 120.0
+      }
+    }
+  },
+  "models": [
+    {
+      "name": "MLP Neural Network",
+      "slug": "mlp_neural_network",
+      "cv_mae": 1.979,
+      "cv_rmse": 2.489,
+      "cv_r2": 0.9693,
+      "val_mae": 1.928,
+      "val_rmse": 2.429,
+      "val_r2": 0.9716,
+      "test_mae": 2.008,
+      "test_rmse": 2.508,
+      "test_r2": 0.9688,
+      "train_time_sec": 85.12,
+      "is_champion": true
+    },
+    {
+      "name": "Stacking Ensemble",
+      "slug": "stacking_ensemble",
+      "cv_mae": 2.014,
+      "cv_rmse": 2.532,
+      "cv_r2": 0.9682,
+      "val_mae": 1.964,
+      "val_rmse": 2.477,
+      "val_r2": 0.9704,
+      "test_mae": 2.02,
+      "test_rmse": 2.544,
+      "test_r2": 0.9679,
+      "train_time_sec": 79.0,
+      "is_champion": false
+    },
+    {
+      "name": "LightGBM",
+      "slug": "lightgbm",
+      "cv_mae": 2.018,
+      "cv_rmse": 2.561,
+      "cv_r2": 0.9675,
+      "val_mae": 1.97,
+      "val_rmse": 2.515,
+      "val_r2": 0.9695,
+      "test_mae": 2.021,
+      "test_rmse": 2.561,
+      "test_r2": 0.9675,
+      "train_time_sec": 12.96,
+      "is_champion": false
+    },
+    {
+      "name": "HistGradientBoosting",
+      "slug": "histgradientboosting",
+      "cv_mae": 2.034,
+      "cv_rmse": 2.588,
+      "cv_r2": 0.9668,
+      "val_mae": 1.991,
+      "val_rmse": 2.544,
+      "val_r2": 0.9688,
+      "test_mae": 2.059,
+      "test_rmse": 2.617,
+      "test_r2": 0.966,
+      "train_time_sec": 16.33,
+      "is_champion": false
+    },
+    {
+      "name": "Ridge Regression",
+      "slug": "ridge_regression",
+      "cv_mae": 2.27,
+      "cv_rmse": 2.997,
+      "cv_r2": 0.9553,
+      "val_mae": 2.231,
+      "val_rmse": 2.892,
+      "val_r2": 0.9597,
+      "test_mae": 2.265,
+      "test_rmse": 2.941,
+      "test_r2": 0.9571,
+      "train_time_sec": 3.23,
+      "is_champion": false
+    },
+    {
+      "name": "Linear Regression",
+      "slug": "linear_regression",
+      "cv_mae": 2.27,
+      "cv_rmse": 2.997,
+      "cv_r2": 0.9553,
+      "val_mae": 2.231,
+      "val_rmse": 2.892,
+      "val_r2": 0.9597,
+      "test_mae": 2.265,
+      "test_rmse": 2.941,
+      "test_r2": 0.9571,
+      "train_time_sec": 2.99,
+      "is_champion": false
+    },
+    {
+      "name": "ElasticNet",
+      "slug": "elasticnet",
+      "cv_mae": 2.3,
+      "cv_rmse": 3.019,
+      "cv_r2": 0.9547,
+      "val_mae": 2.265,
+      "val_rmse": 2.921,
+      "val_r2": 0.9589,
+      "test_mae": 2.293,
+      "test_rmse": 2.963,
+      "test_r2": 0.9564,
+      "train_time_sec": 16.99,
+      "is_champion": false
+    },
+    {
+      "name": "Extra Trees",
+      "slug": "extra_trees",
+      "cv_mae": 2.637,
+      "cv_rmse": 3.376,
+      "cv_r2": 0.9434,
+      "val_mae": 2.588,
+      "val_rmse": 3.323,
+      "val_r2": 0.9468,
+      "test_mae": 2.639,
+      "test_rmse": 3.375,
+      "test_r2": 0.9435,
+      "train_time_sec": 20.18,
+      "is_champion": false
+    },
+    {
+      "name": "Random Forest",
+      "slug": "random_forest",
+      "cv_mae": 2.713,
+      "cv_rmse": 3.493,
+      "cv_r2": 0.9395,
+      "val_mae": 2.661,
+      "val_rmse": 3.442,
+      "val_r2": 0.9429,
+      "test_mae": 2.701,
+      "test_rmse": 3.473,
+      "test_r2": 0.9402,
+      "train_time_sec": 42.27,
+      "is_champion": false
+    }
+  ],
+  "feature_importances": [
+    {
+      "feature": "hours_studied",
+      "importance_mean": 0.22255410384472257,
+      "importance_std": 0.004752208668608479
+    },
+    {
+      "feature": "previous_score",
+      "importance_mean": 0.13975105097555374,
+      "importance_std": 0.0022051772318516013
+    },
+    {
+      "feature": "quiz_average",
+      "importance_mean": 0.09552627479262783,
+      "importance_std": 0.0014695482225614168
+    },
+    {
+      "feature": "assignment_completion_rate",
+      "importance_mean": 0.08769896042087318,
+      "importance_std": 0.0010619945806977444
+    },
+    {
+      "feature": "attendance_percent",
+      "importance_mean": 0.06341834978496104,
+      "importance_std": 0.0004479783551379289
+    },
+    {
+      "feature": "practice_papers_solved",
+      "importance_mean": 0.025641727435517313,
+      "importance_std": 0.0007096843568173294
+    },
+    {
+      "feature": "motivation_level",
+      "importance_mean": 0.021972508215698672,
+      "importance_std": 0.0007037876357842247
+    },
+    {
+      "feature": "parental_involvement",
+      "importance_mean": 0.02099329414363187,
+      "importance_std": 0.0005567363808861255
+    },
+    {
+      "feature": "parental_education",
+      "importance_mean": 0.015154855705637283,
+      "importance_std": 0.00034642591036410764
+    },
+    {
+      "feature": "access_to_resources",
+      "importance_mean": 0.011544799631578506,
+      "importance_std": 0.0004816174414472848
+    },
+    {
+      "feature": "sleep_hours",
+      "importance_mean": 0.008409981575625381,
+      "importance_std": 0.0005672738429672677
+    },
+    {
+      "feature": "tutoring_sessions",
+      "importance_mean": 0.007338321472030685,
+      "importance_std": 0.0007086686634146275
+    },
+    {
+      "feature": "extracurricular",
+      "importance_mean": 0.0038561606505444377,
+      "importance_std": 0.00022278437354461724
+    },
+    {
+      "feature": "internet_access",
+      "importance_mean": 0.003821974344379231,
+      "importance_std": 0.0003735393526803736
+    },
+    {
+      "feature": "school_type",
+      "importance_mean": 0.0028931165642035904,
+      "importance_std": 7.231418570655323e-05
+    },
+    {
+      "feature": "screen_time_hours",
+      "importance_mean": 0.0024756278097642246,
+      "importance_std": 0.00024099284499973702
+    },
+    {
+      "feature": "physical_activity_hours",
+      "importance_mean": 0.002040443755049015,
+      "importance_std": 0.000257687015611933
+    },
+    {
+      "feature": "stress_level",
+      "importance_mean": 0.001122672985381734,
+      "importance_std": 0.0002341962509306776
+    },
+    {
+      "feature": "commute_minutes",
+      "importance_mean": 0.0005285034988413706,
+      "importance_std": 0.00015347944849781407
+    },
+    {
+      "feature": "learning_style",
+      "importance_mean": 0.00014643597195940217,
+      "importance_std": 0.00011862164154061619
+    }
+  ],
+  "diagnostic_samples": [
+    {
+      "actual": 57.7,
+      "predicted": 58.1,
+      "residual": -0.4
+    },
+    {
+      "actual": 75.5,
+      "predicted": 82.4,
+      "residual": -6.93
+    },
+    {
+      "actual": 64.6,
+      "predicted": 65.8,
+      "residual": -1.21
+    },
+    {
+      "actual": 95.1,
+      "predicted": 92.5,
+      "residual": 2.63
+    },
+    {
+      "actual": 91.5,
+      "predicted": 92.4,
+      "residual": -0.86
+    },
+    {
+      "actual": 85.1,
+      "predicted": 84.8,
+      "residual": 0.35
+    },
+    {
+      "actual": 86.0,
+      "predicted": 85.8,
+      "residual": 0.23
+    },
+    {
+      "actual": 98.5,
+      "predicted": 96.1,
+      "residual": 2.37
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -5.84
+    },
+    {
+      "actual": 86.4,
+      "predicted": 81.5,
+      "residual": 4.95
+    },
+    {
+      "actual": 90.0,
+      "predicted": 90.6,
+      "residual": -0.58
+    },
+    {
+      "actual": 59.7,
+      "predicted": 64.1,
+      "residual": -4.42
+    },
+    {
+      "actual": 68.5,
+      "predicted": 68.1,
+      "residual": 0.38
+    },
+    {
+      "actual": 86.5,
+      "predicted": 86.6,
+      "residual": -0.07
+    },
+    {
+      "actual": 76.7,
+      "predicted": 75.7,
+      "residual": 1.02
+    },
+    {
+      "actual": 79.8,
+      "predicted": 77.5,
+      "residual": 2.34
+    },
+    {
+      "actual": 84.1,
+      "predicted": 78.5,
+      "residual": 5.65
+    },
+    {
+      "actual": 63.6,
+      "predicted": 64.0,
+      "residual": -0.39
+    },
+    {
+      "actual": 80.9,
+      "predicted": 82.8,
+      "residual": -1.87
+    },
+    {
+      "actual": 63.8,
+      "predicted": 65.3,
+      "residual": -1.49
+    },
+    {
+      "actual": 77.4,
+      "predicted": 76.9,
+      "residual": 0.47
+    },
+    {
+      "actual": 67.9,
+      "predicted": 70.7,
+      "residual": -2.84
+    },
+    {
+      "actual": 92.4,
+      "predicted": 92.5,
+      "residual": -0.14
+    },
+    {
+      "actual": 84.7,
+      "predicted": 84.6,
+      "residual": 0.1
+    },
+    {
+      "actual": 74.4,
+      "predicted": 72.5,
+      "residual": 1.91
+    },
+    {
+      "actual": 43.3,
+      "predicted": 39.5,
+      "residual": 3.75
+    },
+    {
+      "actual": 81.7,
+      "predicted": 85.2,
+      "residual": -3.54
+    },
+    {
+      "actual": 89.0,
+      "predicted": 89.3,
+      "residual": -0.32
+    },
+    {
+      "actual": 80.8,
+      "predicted": 79.4,
+      "residual": 1.35
+    },
+    {
+      "actual": 82.4,
+      "predicted": 81.8,
+      "residual": 0.61
+    },
+    {
+      "actual": 83.6,
+      "predicted": 86.3,
+      "residual": -2.68
+    },
+    {
+      "actual": 94.1,
+      "predicted": 93.6,
+      "residual": 0.51
+    },
+    {
+      "actual": 56.6,
+      "predicted": 56.8,
+      "residual": -0.24
+    },
+    {
+      "actual": 77.1,
+      "predicted": 79.8,
+      "residual": -2.74
+    },
+    {
+      "actual": 84.4,
+      "predicted": 81.9,
+      "residual": 2.49
+    },
+    {
+      "actual": 70.7,
+      "predicted": 68.9,
+      "residual": 1.77
+    },
+    {
+      "actual": 83.8,
+      "predicted": 83.2,
+      "residual": 0.63
+    },
+    {
+      "actual": 87.3,
+      "predicted": 84.5,
+      "residual": 2.78
+    },
+    {
+      "actual": 96.5,
+      "predicted": 97.2,
+      "residual": -0.68
+    },
+    {
+      "actual": 79.9,
+      "predicted": 82.7,
+      "residual": -2.8
+    },
+    {
+      "actual": 81.8,
+      "predicted": 81.4,
+      "residual": 0.43
+    },
+    {
+      "actual": 92.7,
+      "predicted": 93.4,
+      "residual": -0.71
+    },
+    {
+      "actual": 82.0,
+      "predicted": 81.2,
+      "residual": 0.75
+    },
+    {
+      "actual": 79.9,
+      "predicted": 83.7,
+      "residual": -3.83
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -2.21
+    },
+    {
+      "actual": 71.7,
+      "predicted": 72.4,
+      "residual": -0.74
+    },
+    {
+      "actual": 89.1,
+      "predicted": 88.0,
+      "residual": 1.07
+    },
+    {
+      "actual": 60.5,
+      "predicted": 60.1,
+      "residual": 0.42
+    },
+    {
+      "actual": 56.6,
+      "predicted": 58.3,
+      "residual": -1.7
+    },
+    {
+      "actual": 88.4,
+      "predicted": 90.2,
+      "residual": -1.77
+    },
+    {
+      "actual": 51.1,
+      "predicted": 54.8,
+      "residual": -3.74
+    },
+    {
+      "actual": 73.7,
+      "predicted": 71.7,
+      "residual": 1.97
+    },
+    {
+      "actual": 89.4,
+      "predicted": 84.0,
+      "residual": 5.42
+    },
+    {
+      "actual": 91.6,
+      "predicted": 91.9,
+      "residual": -0.29
+    },
+    {
+      "actual": 68.2,
+      "predicted": 69.2,
+      "residual": -0.97
+    },
+    {
+      "actual": 82.1,
+      "predicted": 83.1,
+      "residual": -0.99
+    },
+    {
+      "actual": 89.3,
+      "predicted": 89.4,
+      "residual": -0.07
+    },
+    {
+      "actual": 74.0,
+      "predicted": 74.7,
+      "residual": -0.71
+    },
+    {
+      "actual": 58.4,
+      "predicted": 58.1,
+      "residual": 0.26
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -1.82
+    },
+    {
+      "actual": 92.5,
+      "predicted": 92.4,
+      "residual": 0.13
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -3.81
+    },
+    {
+      "actual": 79.8,
+      "predicted": 77.5,
+      "residual": 2.32
+    },
+    {
+      "actual": 91.7,
+      "predicted": 93.7,
+      "residual": -1.98
+    },
+    {
+      "actual": 63.3,
+      "predicted": 61.6,
+      "residual": 1.72
+    },
+    {
+      "actual": 64.6,
+      "predicted": 63.7,
+      "residual": 0.89
+    },
+    {
+      "actual": 82.6,
+      "predicted": 83.0,
+      "residual": -0.37
+    },
+    {
+      "actual": 81.6,
+      "predicted": 85.2,
+      "residual": -3.64
+    },
+    {
+      "actual": 75.6,
+      "predicted": 78.4,
+      "residual": -2.83
+    },
+    {
+      "actual": 74.0,
+      "predicted": 80.1,
+      "residual": -6.09
+    },
+    {
+      "actual": 93.3,
+      "predicted": 89.9,
+      "residual": 3.42
+    },
+    {
+      "actual": 85.2,
+      "predicted": 80.8,
+      "residual": 4.43
+    },
+    {
+      "actual": 99.9,
+      "predicted": 93.8,
+      "residual": 6.14
+    },
+    {
+      "actual": 58.1,
+      "predicted": 60.6,
+      "residual": -2.47
+    },
+    {
+      "actual": 85.7,
+      "predicted": 80.0,
+      "residual": 5.67
+    },
+    {
+      "actual": 77.6,
+      "predicted": 77.1,
+      "residual": 0.55
+    },
+    {
+      "actual": 64.9,
+      "predicted": 66.5,
+      "residual": -1.56
+    },
+    {
+      "actual": 89.5,
+      "predicted": 90.9,
+      "residual": -1.39
+    },
+    {
+      "actual": 92.9,
+      "predicted": 92.1,
+      "residual": 0.83
+    },
+    {
+      "actual": 85.8,
+      "predicted": 86.9,
+      "residual": -1.09
+    },
+    {
+      "actual": 87.5,
+      "predicted": 86.5,
+      "residual": 1.0
+    },
+    {
+      "actual": 66.9,
+      "predicted": 68.4,
+      "residual": -1.5
+    },
+    {
+      "actual": 61.2,
+      "predicted": 62.7,
+      "residual": -1.46
+    },
+    {
+      "actual": 79.0,
+      "predicted": 82.3,
+      "residual": -3.29
+    },
+    {
+      "actual": 94.5,
+      "predicted": 95.7,
+      "residual": -1.23
+    },
+    {
+      "actual": 94.1,
+      "predicted": 91.4,
+      "residual": 2.69
+    },
+    {
+      "actual": 86.7,
+      "predicted": 88.3,
+      "residual": -1.58
+    },
+    {
+      "actual": 82.3,
+      "predicted": 78.1,
+      "residual": 4.22
+    },
+    {
+      "actual": 68.0,
+      "predicted": 67.5,
+      "residual": 0.46
+    },
+    {
+      "actual": 66.3,
+      "predicted": 66.8,
+      "residual": -0.49
+    },
+    {
+      "actual": 74.3,
+      "predicted": 73.2,
+      "residual": 1.09
+    },
+    {
+      "actual": 82.0,
+      "predicted": 86.1,
+      "residual": -4.15
+    },
+    {
+      "actual": 68.1,
+      "predicted": 63.4,
+      "residual": 4.69
+    },
+    {
+      "actual": 82.0,
+      "predicted": 81.5,
+      "residual": 0.51
+    },
+    {
+      "actual": 72.5,
+      "predicted": 72.0,
+      "residual": 0.51
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": 0.03
+    },
+    {
+      "actual": 69.6,
+      "predicted": 69.4,
+      "residual": 0.2
+    },
+    {
+      "actual": 95.9,
+      "predicted": 94.1,
+      "residual": 1.76
+    },
+    {
+      "actual": 91.7,
+      "predicted": 88.4,
+      "residual": 3.29
+    },
+    {
+      "actual": 62.9,
+      "predicted": 65.5,
+      "residual": -2.56
+    },
+    {
+      "actual": 59.0,
+      "predicted": 65.2,
+      "residual": -6.2
+    },
+    {
+      "actual": 88.8,
+      "predicted": 88.9,
+      "residual": -0.12
+    },
+    {
+      "actual": 66.9,
+      "predicted": 73.1,
+      "residual": -6.2
+    },
+    {
+      "actual": 54.7,
+      "predicted": 56.7,
+      "residual": -2.05
+    },
+    {
+      "actual": 80.7,
+      "predicted": 77.6,
+      "residual": 3.13
+    },
+    {
+      "actual": 84.5,
+      "predicted": 84.7,
+      "residual": -0.24
+    },
+    {
+      "actual": 82.2,
+      "predicted": 79.5,
+      "residual": 2.68
+    },
+    {
+      "actual": 93.6,
+      "predicted": 95.9,
+      "residual": -2.31
+    },
+    {
+      "actual": 63.1,
+      "predicted": 65.1,
+      "residual": -1.99
+    },
+    {
+      "actual": 86.7,
+      "predicted": 87.3,
+      "residual": -0.59
+    },
+    {
+      "actual": 99.5,
+      "predicted": 98.9,
+      "residual": 0.62
+    },
+    {
+      "actual": 77.0,
+      "predicted": 80.8,
+      "residual": -3.83
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -1.61
+    },
+    {
+      "actual": 67.8,
+      "predicted": 66.4,
+      "residual": 1.42
+    },
+    {
+      "actual": 71.3,
+      "predicted": 72.6,
+      "residual": -1.29
+    },
+    {
+      "actual": 69.4,
+      "predicted": 68.1,
+      "residual": 1.3
+    },
+    {
+      "actual": 89.1,
+      "predicted": 89.1,
+      "residual": 0.01
+    },
+    {
+      "actual": 58.4,
+      "predicted": 60.3,
+      "residual": -1.93
+    },
+    {
+      "actual": 81.8,
+      "predicted": 85.9,
+      "residual": -4.12
+    },
+    {
+      "actual": 66.1,
+      "predicted": 64.3,
+      "residual": 1.78
+    },
+    {
+      "actual": 71.6,
+      "predicted": 69.3,
+      "residual": 2.28
+    },
+    {
+      "actual": 96.6,
+      "predicted": 93.8,
+      "residual": 2.83
+    },
+    {
+      "actual": 84.3,
+      "predicted": 80.5,
+      "residual": 3.78
+    },
+    {
+      "actual": 83.2,
+      "predicted": 87.2,
+      "residual": -4.0
+    },
+    {
+      "actual": 69.6,
+      "predicted": 72.3,
+      "residual": -2.71
+    },
+    {
+      "actual": 100.0,
+      "predicted": 99.1,
+      "residual": 0.9
+    },
+    {
+      "actual": 69.9,
+      "predicted": 70.3,
+      "residual": -0.4
+    },
+    {
+      "actual": 94.2,
+      "predicted": 93.5,
+      "residual": 0.73
+    },
+    {
+      "actual": 97.1,
+      "predicted": 98.5,
+      "residual": -1.4
+    },
+    {
+      "actual": 67.2,
+      "predicted": 63.8,
+      "residual": 3.42
+    },
+    {
+      "actual": 78.2,
+      "predicted": 79.8,
+      "residual": -1.59
+    },
+    {
+      "actual": 84.7,
+      "predicted": 87.3,
+      "residual": -2.57
+    },
+    {
+      "actual": 76.2,
+      "predicted": 76.6,
+      "residual": -0.42
+    },
+    {
+      "actual": 86.7,
+      "predicted": 88.9,
+      "residual": -2.21
+    },
+    {
+      "actual": 90.6,
+      "predicted": 89.5,
+      "residual": 1.06
+    },
+    {
+      "actual": 89.6,
+      "predicted": 84.9,
+      "residual": 4.71
+    },
+    {
+      "actual": 67.8,
+      "predicted": 70.1,
+      "residual": -2.33
+    },
+    {
+      "actual": 98.9,
+      "predicted": 97.3,
+      "residual": 1.59
+    },
+    {
+      "actual": 64.5,
+      "predicted": 65.9,
+      "residual": -1.39
+    },
+    {
+      "actual": 88.1,
+      "predicted": 93.6,
+      "residual": -5.51
+    },
+    {
+      "actual": 89.1,
+      "predicted": 89.4,
+      "residual": -0.3
+    },
+    {
+      "actual": 51.9,
+      "predicted": 50.7,
+      "residual": 1.18
+    },
+    {
+      "actual": 73.6,
+      "predicted": 74.4,
+      "residual": -0.85
+    },
+    {
+      "actual": 74.3,
+      "predicted": 75.1,
+      "residual": -0.8
+    },
+    {
+      "actual": 88.1,
+      "predicted": 85.0,
+      "residual": 3.1
+    },
+    {
+      "actual": 83.5,
+      "predicted": 82.9,
+      "residual": 0.61
+    },
+    {
+      "actual": 88.2,
+      "predicted": 88.4,
+      "residual": -0.24
+    },
+    {
+      "actual": 76.6,
+      "predicted": 76.6,
+      "residual": -0.02
+    },
+    {
+      "actual": 86.7,
+      "predicted": 88.2,
+      "residual": -1.45
+    },
+    {
+      "actual": 86.6,
+      "predicted": 84.7,
+      "residual": 1.93
+    },
+    {
+      "actual": 67.5,
+      "predicted": 67.6,
+      "residual": -0.11
+    },
+    {
+      "actual": 69.6,
+      "predicted": 65.2,
+      "residual": 4.39
+    },
+    {
+      "actual": 83.2,
+      "predicted": 82.3,
+      "residual": 0.87
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -4.24
+    },
+    {
+      "actual": 88.6,
+      "predicted": 87.5,
+      "residual": 1.14
+    },
+    {
+      "actual": 54.8,
+      "predicted": 57.0,
+      "residual": -2.23
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -0.58
+    },
+    {
+      "actual": 79.0,
+      "predicted": 76.8,
+      "residual": 2.19
+    },
+    {
+      "actual": 77.9,
+      "predicted": 76.8,
+      "residual": 1.08
+    },
+    {
+      "actual": 100.0,
+      "predicted": 100.0,
+      "residual": -4.06
+    }
+  ]
+}

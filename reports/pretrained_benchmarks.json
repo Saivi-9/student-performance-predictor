@@ -1,0 +1,26 @@
+{
+  "benchmarks": [
+    {
+      "repo_id": "Shalan1/student-performance-predictor-models",
+      "model_type": "RandomForestRegressor (Hugging Face Hub)",
+      "benchmark_dataset": "10K Student Performance (2,000 holdout rows)",
+      "target_scale": "0 - 100 pts",
+      "mae": 0.952,
+      "rmse": 1.33,
+      "r2": 0.9952,
+      "features_used": 5,
+      "url": "https://huggingface.co/Shalan1/student-performance-predictor-models"
+    },
+    {
+      "repo_id": "SergeyR256/student-performance",
+      "model_type": "RandomForest Pipeline (Hugging Face Hub)",
+      "benchmark_dataset": "UCI Portuguese Secondary Schools (649 real students)",
+      "target_scale": "0 - 20 G3 grade",
+      "mae": 1.328,
+      "rmse": 1.922,
+      "r2": 0.6454,
+      "features_used": 37,
+      "url": "https://huggingface.co/SergeyR256/student-performance"
+    }
+  ]
+}

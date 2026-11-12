@@ -8,11 +8,12 @@
   --bg-panel: #0B1021;
   --bg-card: #111833;
   --border-color: #1E293B;
+  --brand-color: #6366F1;
   --accent-color: #6366F1;
   --scrollbar-thumb: #253466;
   --scrollbar-track: #0B1021;
 
-  accent-color: var(--accent-color);
+  accent-color: var(--brand-color);
 }
 
 body {
@@ -23,6 +24,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  accent-color: var(--brand-color);
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
@@ -41,6 +43,140 @@ body {
   }
 }
 
+/* Progressive enhancement fallback when accent-color is unsupported (brand-consistent-forms) */
+@supports not (accent-color: #6366F1) {
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 6px;
+    background: #1E293B;
+    border-radius: 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--brand-color, #6366F1);
+    cursor: pointer;
+    margin-top: -5px;
+  }
+  progress {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: none;
+    background: #1E293B;
+    height: 8px;
+    border-radius: 4px;
+  }
+  progress::-webkit-progress-bar {
+    background-color: #1E293B;
+    border-radius: 4px;
+  }
+  progress::-webkit-progress-value {
+    background-color: var(--brand-color, #6366F1);
+    border-radius: 4px;
+  }
+  progress::-moz-progress-bar {
+    background-color: var(--brand-color, #6366F1);
+    border-radius: 4px;
+  }
+}
+
+/* Accessible Tabs styling: non-color underline indicator preserved in forced-colors mode */
+[role="tablist"] {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.25rem;
+}
+
+[role="tab"] {
+  position: relative;
+  flex: none;
+}
+
+[role="tab"][aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0.5rem 0;
+  border-block-end: 3px solid var(--brand-color);
+}
+
+/* Responsive Data Table with sticky headers & container query stacked mobile view */
+.table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(500px, 75vh);
+  container-type: inline-size;
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  background-color: #060913;
+}
+
+.responsive-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.responsive-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background-color: #0B1021;
+}
+
+.responsive-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background-color: #0B1021;
+}
+
+@container (width < 600px) {
+  .responsive-table,
+  .responsive-table thead,
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table th,
+  .responsive-table td {
+    display: block;
+  }
+
+  .responsive-table thead {
+    display: none;
+  }
+
+  .responsive-table tbody tr {
+    margin-block-end: 1rem;
+    border: 1px solid #1E293B;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .responsive-table tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background-color: #111833;
+    padding: 0.5rem;
+  }
+
+  .responsive-table td[data-label]::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: #94A3B8;
+  }
+}
+
 .glow-indigo {
   box-shadow: 0 0 25px rgba(99, 102, 241, 0.2);
 }
@@ -51,7 +187,7 @@ body {
 
 .edu-grid {
   background-size: 30px 30px;
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(30, 41, 59, 0.3) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(30, 41, 59, 0.3) 1px, transparent 1px);
 }
