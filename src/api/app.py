@@ -491,6 +491,40 @@ def run_pretrained_prediction(student: StudentInput):
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=f"Pretrained inference failed: {exc}")
 
 
+@app.get("/v1/system/registry-diagnostics", tags=["System"])
+def get_registry_diagnostics():
+    """Audit all trained model artifacts in the registry and dataset files on disk."""
+    artifacts = []
+    if REGISTRY_DIR.exists():
+        for p in sorted(REGISTRY_DIR.glob("*.joblib")):
+            artifacts.append({
+                "slug": p.stem,
+                "path": str(p.relative_to(PROJECT_ROOT)).replace("\\", "/"),
+                "size_kb": round(p.stat().st_size / 1024.0, 2),
+                "available": True,
+            })
+
+    champion_exists = (MODELS_DIR / "best_model.joblib").exists()
+    datasets = {}
+    for name, path in [
+        ("primary_20k", DATA_DIR / "student_data.csv"),
+        ("uci_benchmark", DATA_DIR / "external" / "uci_student_performance.csv"),
+        ("hf_10k_benchmark", DATA_DIR / "external" / "hf_student_performance_10k.csv"),
+    ]:
+        datasets[name] = {
+            "available": path.exists(),
+            "size_kb": round(path.stat().st_size / 1024.0, 2) if path.exists() else 0.0,
+        }
+
+    return {
+        "status": "READY" if champion_exists and len(artifacts) > 0 else "DEGRADED",
+        "champion_artifact_available": champion_exists,
+        "registry_count": len(artifacts),
+        "registry_artifacts": artifacts,
+        "datasets": datasets,
+    }
+
+
 # Mount Production React Frontend if built
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 if os.path.exists(frontend_dist):

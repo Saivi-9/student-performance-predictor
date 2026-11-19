@@ -102,3 +102,14 @@ def test_benchmarks_and_dataset_and_catalog_endpoints():
     cat = client.get("/v1/pretrained/catalog")
     assert cat.status_code == 200
     assert len(cat.json()["catalog"]) >= 5
+
+
+def test_registry_diagnostics_endpoint():
+    res = client.get("/v1/system/registry-diagnostics")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "READY"
+    assert data["champion_artifact_available"] is True
+    assert data["registry_count"] >= 9
+    assert data["datasets"]["primary_20k"]["available"] is True
+
