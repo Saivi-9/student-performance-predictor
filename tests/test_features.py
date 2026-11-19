@@ -1,19 +1,19 @@
-"""Unit tests for Feature Engineering module."""
+"""Unit tests for Feature Engineering module & leak-free transformer (v2.0)."""
 
 import pytest
-import pandas as pd
-import numpy as np
 from data.generate_dataset import generate_student_data
-from src.features import engineer_features, ENGINEERED_FEATURES
+from src.dataset import split_data
+from src.features import engineer_features, AcademicFeatureEngineer, ENGINEERED_FEATURES
 
 
 @pytest.fixture
 def sample_data():
-    return generate_student_data(n_samples=100, random_seed=42)
+    return generate_student_data(n_samples=120, random_seed=42)
 
 
-def test_engineer_features_adds_columns(sample_data):
+def test_engineer_features_adds_all_eight_columns(sample_data):
     df_eng = engineer_features(sample_data)
+    assert len(ENGINEERED_FEATURES) == 8
     for col in ENGINEERED_FEATURES:
         assert col in df_eng.columns, f"Missing engineered feature: {col}"
 
@@ -28,6 +28,16 @@ def test_engineer_features_does_not_mutate_original(sample_data):
     original_cols = list(sample_data.columns)
     _ = engineer_features(sample_data)
     assert list(sample_data.columns) == original_cols
+
+
+def test_transformer_learns_medians_from_train_only(sample_data):
+    X_train, X_val, _, _, _, _ = split_data(sample_data, test_size=0.2, val_size=0.2)
+    tf = AcademicFeatureEngineer().fit(X_train)
+    assert hasattr(tf, "medians_")
+    X_val_transformed = tf.transform(X_val)
+    for col in ENGINEERED_FEATURES:
+        assert col in X_val_transformed.columns
+        assert not X_val_transformed[col].isnull().any()
 
 
 def test_study_efficiency_non_negative(sample_data):

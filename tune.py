@@ -1,14 +1,13 @@
 """
-Automated Hyperparameter Tuning CLI Script.
-Executes systematic grid search cross-validation across regression model hyperparameter spaces.
+Automated Hyperparameter Tuning CLI Script (v2.0).
+Executes systematic cross-validation tuning across Ridge, Random Forest, or LightGBM pipelines.
 """
 
 import argparse
 from pathlib import Path
 import joblib
-import pandas as pd
 from src.dataset import load_data, split_data
-from src.tuning import tune_ridge_pipeline, tune_random_forest_pipeline
+from src.tuning import tune_ridge_pipeline, tune_random_forest_pipeline, tune_lightgbm_pipeline
 from src.evaluate import compute_metrics
 
 
@@ -17,9 +16,9 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="ridge",
-        choices=["ridge", "rf"],
-        help="Model architecture to tune (ridge or rf)"
+        default="lgbm",
+        choices=["ridge", "rf", "lgbm"],
+        help="Model architecture to tune (ridge, rf, or lgbm)"
     )
     parser.add_argument("--cv", type=int, default=5, help="Number of cross-validation folds")
     parser.add_argument("--save", action="store_true", help="Save the tuned model to saved_models/tuned_model.joblib")
@@ -31,7 +30,7 @@ def main():
     models_dir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
-    print("      STUDENT PERFORMANCE PREDICTOR - HYPERPARAMETER TUNING         ")
+    print("   STUDENT PERFORMANCE PREDICTOR v2.0 - HYPERPARAMETER TUNING      ")
     print("=" * 70)
 
     if not data_path.exists():
@@ -41,7 +40,7 @@ def main():
     X_train, X_val, X_test, y_train, y_val, y_test = split_data(
         df, test_size=0.15, val_size=0.15, random_state=42
     )
-    print(f"Loaded dataset: {len(df)} total rows. Training split: {len(X_train)} samples.")
+    print(f"Loaded dataset: {len(df):,} total rows. Training split: {len(X_train):,} samples.")
 
     if args.model == "ridge":
         print(f"\n[Running Ridge Grid Tuning] {args.cv}-fold CV across alpha values...")
@@ -52,12 +51,12 @@ def main():
         print("\nTop 5 Alpha Candidate Results (Lowest CV RMSE):")
         print(results_df.head(5).to_string(index=False))
 
-    else:
+    elif args.model == "rf":
         print(f"\n[Running Random Forest Grid Tuning] {args.cv}-fold CV...")
         param_grid = {
-            "model__n_estimators": [60, 100, 140],
-            "model__max_depth": [5, 8, 12],
-            "model__min_samples_split": [2, 4],
+            "model__n_estimators": [80, 120],
+            "model__max_depth": [8, 12],
+            "model__min_samples_split": [2, 5],
         }
         best_pipeline, best_params, results_df = tune_random_forest_pipeline(
             X_train, y_train, param_grid=param_grid, cv=args.cv, random_state=42
@@ -65,10 +64,17 @@ def main():
         print("\nTop 5 Parameter Configurations:")
         print(results_df.head(5).to_string(index=False))
 
-    print("\n" + "-" * 70)
-    print(f"🎯 Optimal Parameters: {best_params}")
+    else:
+        print(f"\n[Running LightGBM Randomized Tuning] {args.cv}-fold CV...")
+        best_pipeline, best_params, results_df = tune_lightgbm_pipeline(
+            X_train, y_train, n_iter=10, cv=args.cv, random_state=42
+        )
+        print("\nTop 5 Parameter Configurations:")
+        print(results_df.head(5).to_string(index=False))
 
-    # Evaluate best tuned pipeline on validation split
+    print("\n" + "-" * 70)
+    print(f"Optimal Parameters: {best_params}")
+
     y_val_pred = best_pipeline.predict(X_val)
     val_metrics = compute_metrics(y_val, y_val_pred)
     print(f"Validation Performance: RMSE = {val_metrics['RMSE']:.3f} | R² = {val_metrics['R2']:.4f} | MAE = {val_metrics['MAE']:.3f}")
@@ -77,7 +83,7 @@ def main():
     if args.save:
         save_path = models_dir / "tuned_model.joblib"
         joblib.dump(best_pipeline, save_path)
-        print(f"✅ Tuned pipeline successfully saved to {save_path}")
+        print(f"Tuned pipeline successfully saved to {save_path}")
 
 
 if __name__ == "__main__":

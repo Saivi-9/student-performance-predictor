@@ -1,5 +1,5 @@
 """
-Pipeline module for constructing leak-free preprocessing and model pipelines.
+Pipeline module for constructing leak-free feature engineering, preprocessing, and model pipelines.
 """
 
 from sklearn.compose import ColumnTransformer
@@ -8,76 +8,67 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, OrdinalEncoder
 from sklearn.base import BaseEstimator
 
+from src.dataset import (
+    EXPECTED_NUMERICAL_COLS,
+    EXPECTED_ORDINAL_COLS,
+    EXPECTED_NOMINAL_COLS,
+)
+from src.features import AcademicFeatureEngineer, ENGINEERED_FEATURES
 
-NUMERICAL_FEATURES = [
-    'hours_studied',
-    'attendance_percent',
-    'previous_score',
-    'sleep_hours',
-    'tutoring_sessions'
+
+NUMERICAL_FEATURES = EXPECTED_NUMERICAL_COLS + ENGINEERED_FEATURES
+
+ORDINAL_FEATURES = EXPECTED_ORDINAL_COLS
+ORDINAL_CATEGORIES = [
+    ['Low', 'Medium', 'High'],                 # parental_involvement
+    ['Low', 'Medium', 'High'],                 # motivation_level
+    ['Low', 'Medium', 'High'],                 # access_to_resources
+    ['High School', 'Bachelor', 'Master+'],    # parental_education
 ]
 
-ORDINAL_FEATURES = ['parental_involvement']
-ORDINAL_CATEGORIES = [['Low', 'Medium', 'High']]
-
-NOMINAL_FEATURES = ['extracurricular', 'internet_access']
+NOMINAL_FEATURES = EXPECTED_NOMINAL_COLS
 
 
 def build_preprocessor() -> ColumnTransformer:
-    """Build a ColumnTransformer that handles imputation, encoding, and scaling.
-
-    - Numerical features: Impute missing values with median, then standardize (mean=0, std=1).
-    - Ordinal features: Impute missing values with most frequent, then ordinal encode ('Low' < 'Medium' < 'High').
-    - Nominal features: Impute missing values with most frequent, then one-hot encode.
-
-    Returns:
-        ColumnTransformer: Preprocessing transformer.
+    """Build a ColumnTransformer that handles imputation, encoding, and scaling
+    across all 20 raw and 8 engineered features (28 features total).
     """
-    # 1. Numerical pipeline
     num_pipeline = Pipeline([
         ('imputer', SimpleImputer(strategy='median')),
         ('scaler', StandardScaler())
     ])
 
-    # 2. Ordinal categorical pipeline
     ord_pipeline = Pipeline([
         ('imputer', SimpleImputer(strategy='most_frequent')),
-        ('encoder', OrdinalEncoder(categories=ORDINAL_CATEGORIES, handle_unknown='use_encoded_value', unknown_value=-1))
+        ('encoder', OrdinalEncoder(
+            categories=ORDINAL_CATEGORIES,
+            handle_unknown='use_encoded_value',
+            unknown_value=-1
+        ))
     ])
 
-    # 3. Nominal categorical pipeline
     nom_pipeline = Pipeline([
         ('imputer', SimpleImputer(strategy='most_frequent')),
         ('encoder', OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore'))
     ])
 
-    # Combine into a unified ColumnTransformer
-    preprocessor = ColumnTransformer(
+    return ColumnTransformer(
         transformers=[
             ('num', num_pipeline, NUMERICAL_FEATURES),
             ('ord', ord_pipeline, ORDINAL_FEATURES),
-            ('nom', nom_pipeline, NOMINAL_FEATURES)
+            ('nom', nom_pipeline, NOMINAL_FEATURES),
         ],
-        remainder='drop'
+        remainder='drop',
     )
-    return preprocessor
 
 
 def create_model_pipeline(model: BaseEstimator) -> Pipeline:
-    """Combine the preprocessor and a regressor into an end-to-end Pipeline.
+    """Combine AcademicFeatureEngineer, ColumnTransformer, and a regressor into an end-to-end Pipeline.
 
-    This ensures that whenever fit() or predict() is called on the pipeline,
-    the exact same transformations are applied without data leakage.
-
-    Args:
-        model: An instantiated scikit-learn regressor (e.g., LinearRegression, Ridge, RandomForestRegressor).
-
-    Returns:
-        Pipeline: End-to-end pipeline ready to fit.
+    This guarantees zero data leakage and zero train-serving skew across all 28 features.
     """
-    preprocessor = build_preprocessor()
-    pipeline = Pipeline([
-        ('preprocessor', preprocessor),
-        ('model', model)
+    return Pipeline([
+        ('feature_engineer', AcademicFeatureEngineer()),
+        ('preprocessor', build_preprocessor()),
+        ('model', model),
     ])
-    return pipeline
