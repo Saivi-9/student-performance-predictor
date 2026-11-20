@@ -525,6 +525,67 @@ def get_registry_diagnostics():
     }
 
 
+@app.post("/v1/predict/intervention-plan", tags=["Sensitivity"])
+def generate_intervention_plan(
+    student: StudentInput,
+    target_score: float = Query(default=85.0, ge=50.0, le=100.0),
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Evaluate actionable academic levers and rank concrete interventions by projected score gain."""
+    pipeline, _ = get_pipeline(model_slug)
+    base_dict = student.model_dump()
+    base_score = round(float(np.clip(pipeline.predict(pd.DataFrame([base_dict]))[0], 0.0, 100.0)), 1)
+
+    candidate_levers = [
+        ("hours_studied", "Increase weekly study time", min(25.0, round(student.hours_studied + 4.0, 1))),
+        ("attendance_percent", "Raise lecture attendance", min(100.0, max(student.attendance_percent, 95.0))),
+        ("assignment_completion_rate", "Boost assignment completion", min(100.0, max(student.assignment_completion_rate, 95.0))),
+        ("practice_papers_solved", "Solve additional past papers", min(15, student.practice_papers_solved + 3)),
+        ("tutoring_sessions", "Add weekly tutoring sessions", min(8, student.tutoring_sessions + 2)),
+        ("sleep_hours", "Optimize nightly sleep schedule", 8.0),
+    ]
+
+    rows = []
+    meta = []
+    for feat, label, proposed_val in candidate_levers:
+        row = base_dict.copy()
+        row[feat] = proposed_val
+        rows.append(row)
+        meta.append((feat, label, base_dict[feat], proposed_val))
+
+    # Also evaluate combined intervention across all levers
+    combined_row = base_dict.copy()
+    for feat, _, proposed_val in candidate_levers:
+        combined_row[feat] = proposed_val
+    rows.append(combined_row)
+
+    preds = np.clip(pipeline.predict(pd.DataFrame(rows)), 0.0, 100.0)
+    interventions = []
+    for idx, (feat, label, curr_val, prop_val) in enumerate(meta):
+        proj = round(float(preds[idx]), 1)
+        gain = round(proj - base_score, 1)
+        interventions.append({
+            "feature": feat,
+            "action": label,
+            "current_value": curr_val,
+            "recommended_value": prop_val,
+            "projected_score": proj,
+            "score_gain": gain,
+            "meets_target": proj >= target_score,
+        })
+
+    interventions.sort(key=lambda item: item["score_gain"], reverse=True)
+    combined_score = round(float(preds[-1]), 1)
+    return {
+        "current_score": base_score,
+        "target_score": target_score,
+        "combined_projected_score": combined_score,
+        "combined_score_gain": round(combined_score - base_score, 1),
+        "target_achievable": combined_score >= target_score,
+        "ranked_interventions": interventions,
+    }
+
+
 # Mount Production React Frontend if built
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 if os.path.exists(frontend_dist):

@@ -113,3 +113,22 @@ def test_registry_diagnostics_endpoint():
     assert data["registry_count"] >= 9
     assert data["datasets"]["primary_20k"]["available"] is True
 
+
+def test_intervention_plan_endpoint():
+    payload = {
+        "hours_studied": 6.0,
+        "attendance_percent": 74.0,
+        "previous_score": 68.0,
+        "assignment_completion_rate": 72.0,
+        "practice_papers_solved": 2,
+        "tutoring_sessions": 0,
+        "sleep_hours": 5.5,
+    }
+    res = client.post("/v1/predict/intervention-plan?target_score=80.0", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["combined_projected_score"] >= data["current_score"]
+    assert len(data["ranked_interventions"]) == 6
+    assert data["ranked_interventions"][0]["score_gain"] >= data["ranked_interventions"][-1]["score_gain"]
+
+
