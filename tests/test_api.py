@@ -132,3 +132,25 @@ def test_intervention_plan_endpoint():
     assert data["ranked_interventions"][0]["score_gain"] >= data["ranked_interventions"][-1]["score_gain"]
 
 
+def test_model_consensus_endpoint():
+    payload = {
+        "hours_studied": 12.0,
+        "attendance_percent": 90.0,
+        "previous_score": 80.0,
+        "quiz_average": 82.0,
+        "assignment_completion_rate": 88.0,
+        "practice_papers_solved": 5,
+        "sleep_hours": 7.5,
+    }
+    res = client.post("/v1/predict/model-consensus", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["models_evaluated"] >= 9
+    assert 0.0 <= data["consensus_mean_score"] <= 100.0
+    assert data["agreement_level"] in ("HIGH", "MODERATE", "DIVERGENT")
+    assert len(data["prediction_range"]) == 2
+    assert data["prediction_range"][0] <= data["consensus_mean_score"] <= data["prediction_range"][1]
+    assert len(data["per_model_predictions"]) == data["models_evaluated"]
+
+
+

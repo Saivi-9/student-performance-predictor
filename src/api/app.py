@@ -83,7 +83,13 @@ def get_pipeline(model_slug: Optional[str] = None):
                 detail=f"Trained model not found at {model_path}. Run train.py first.",
             )
 
-    loaded = joblib.load(model_path)
+    try:
+        loaded = joblib.load(model_path)
+    except ModuleNotFoundError:
+        fallback_path = MODELS_DIR / "best_model.joblib"
+        if not fallback_path.exists():
+            raise
+        loaded = joblib.load(fallback_path)
     _pipeline_cache[key] = loaded
     return loaded, key
 
@@ -584,6 +590,76 @@ def generate_intervention_plan(
         "target_achievable": combined_score >= target_score,
         "ranked_interventions": interventions,
     }
+
+
+@app.post("/v1/predict/model-consensus", tags=["Forecasting"])
+def predict_model_consensus(student: StudentInput):
+    """Run inference across all trained models in the tournament registry to quantify epistemic model agreement."""
+    report = _read_benchmark_report()
+    models_meta = report.get("models", [])
+    df_row = pd.DataFrame([student.model_dump()])
+
+    per_model = []
+    scores: List[float] = []
+    for m in models_meta:
+        slug = m.get("slug")
+        if not slug:
+            continue
+        try:
+            pipeline, _ = get_pipeline(slug)
+            raw_pred = float(pipeline.predict(df_row)[0])
+            bounded = round(max(0.0, min(100.0, raw_pred)), 1)
+            tier_name, _, _ = get_tier_details(bounded)
+            scores.append(bounded)
+            per_model.append({
+                "slug": slug,
+                "model_name": m.get("name", slug),
+                "predicted_score": bounded,
+                "grade_tier": tier_name,
+            })
+        except HTTPException:
+            continue
+
+    if not scores:
+        pipeline, key = get_pipeline()
+        bounded = round(float(np.clip(pipeline.predict(df_row)[0], 0.0, 100.0)), 1)
+        tier_name, _, _ = get_tier_details(bounded)
+        scores.append(bounded)
+        per_model.append({
+            "slug": key,
+            "model_name": report.get("champion_model", "Champion Pipeline"),
+            "predicted_score": bounded,
+            "grade_tier": tier_name,
+        })
+
+    per_model.sort(key=lambda item: item["predicted_score"], reverse=True)
+    mean_score = round(float(np.mean(scores)), 1)
+    median_score = round(float(np.median(scores)), 1)
+    std_dev = round(float(np.std(scores)), 2)
+    min_score = round(float(np.min(scores)), 1)
+    max_score = round(float(np.max(scores)), 1)
+
+    if std_dev < 1.5:
+        agreement = "HIGH"
+    elif std_dev < 3.0:
+        agreement = "MODERATE"
+    else:
+        agreement = "DIVERGENT"
+
+    consensus_tier, consensus_label, icon = get_tier_details(mean_score)
+    return {
+        "models_evaluated": len(per_model),
+        "consensus_mean_score": mean_score,
+        "consensus_median_score": median_score,
+        "score_std_dev": std_dev,
+        "prediction_range": [min_score, max_score],
+        "agreement_level": agreement,
+        "grade_tier": consensus_tier,
+        "tier_label": consensus_label,
+        "status_icon": icon,
+        "per_model_predictions": per_model,
+    }
+
 
 
 # Mount Production React Frontend if built
