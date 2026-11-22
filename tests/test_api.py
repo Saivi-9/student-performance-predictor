@@ -153,4 +153,44 @@ def test_model_consensus_endpoint():
     assert len(data["per_model_predictions"]) == data["models_evaluated"]
 
 
+def test_cohort_percentile_endpoint():
+    payload = {
+        "hours_studied": 16.0,
+        "attendance_percent": 95.0,
+        "previous_score": 88.0,
+        "quiz_average": 90.0,
+        "assignment_completion_rate": 94.0,
+        "practice_papers_solved": 8,
+        "sleep_hours": 8.0,
+    }
+    res = client.post("/v1/predict/cohort-percentile", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.5 <= data["estimated_percentile"] <= 99.9
+    assert data["estimated_percentile"] > 50.0
+    assert "cohort_standing" in data
+    assert data["feature_vs_cohort_deltas"]["hours_studied"] > 0
+
+
+
+def test_cohort_benchmark_endpoint():
+    payload = {
+        "hours_studied": 15.0,
+        "attendance_percent": 94.0,
+        "previous_score": 84.0,
+        "quiz_average": 86.0,
+        "assignment_completion_rate": 92.0,
+        "practice_papers_solved": 6,
+        "sleep_hours": 7.8,
+    }
+    res = client.post("/v1/predict/cohort-benchmark", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.0 <= data["student_predicted_score"] <= 100.0
+    assert 1.0 <= data["estimated_percentile"] <= 99.0
+    assert data["standing_vs_cohort"] in ("ABOVE_MEDIAN", "BELOW_MEDIAN")
+    assert "hours_studied_delta" in data["habit_deltas"]
+
+
+
 

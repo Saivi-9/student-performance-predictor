@@ -661,6 +661,107 @@ def predict_model_consensus(student: StudentInput):
     }
 
 
+@app.post("/v1/predict/cohort-percentile", tags=["Forecasting"])
+def predict_cohort_percentile(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Benchmark a student's predicted exam score and study habits against the 20,000-student cohort distribution."""
+    pipeline, _ = get_pipeline(model_slug)
+    data_dict = student.model_dump()
+    df_row = pd.DataFrame([data_dict])
+    pred = float(pipeline.predict(df_row)[0])
+    bounded_score = round(max(0.0, min(100.0, pred)), 1)
+
+    report = _read_benchmark_report()
+    ds_summary = report.get("dataset_summary", {})
+    cohort_mean = float(ds_summary.get("target_mean", 73.5))
+    cohort_std = max(float(ds_summary.get("target_std", 12.2)), 1.0)
+
+    # Smooth logistic CDF approximation to normal percentile
+    z_score = (bounded_score - cohort_mean) / cohort_std
+    percentile = round(float(np.clip(100.0 / (1.0 + np.exp(-1.702 * z_score)), 0.5, 99.9)), 1)
+
+    if percentile >= 90.0:
+        standing = "Top 10% (Dean's Honors)"
+    elif percentile >= 75.0:
+        standing = "Top 25% (Upper Quartile)"
+    elif percentile >= 50.0:
+        standing = "Above Cohort Median"
+    else:
+        standing = "Below Cohort Median"
+
+    tracked_keys = [
+        "hours_studied",
+        "attendance_percent",
+        "previous_score",
+        "quiz_average",
+        "assignment_completion_rate",
+        "sleep_hours",
+    ]
+    deltas = {
+        k: round(float(data_dict[k]) - float(DEFAULT_STUDENT_PROFILE[k]), 2)
+        for k in tracked_keys
+        if k in data_dict and k in DEFAULT_STUDENT_PROFILE
+    }
+
+    tier_name, _, _ = get_tier_details(bounded_score)
+    return {
+        "predicted_score": bounded_score,
+        "grade_tier": tier_name,
+        "cohort_mean_score": round(cohort_mean, 2),
+        "cohort_std_dev": round(cohort_std, 2),
+        "z_score": round(z_score, 3),
+        "estimated_percentile": percentile,
+        "cohort_standing": standing,
+        "feature_vs_cohort_deltas": deltas,
+    }
+
+
+
+@app.post("/v1/predict/cohort-benchmark", tags=["Analytics"])
+def predict_cohort_benchmark(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Compare a student's predicted performance and behavioral habits against the cohort median baseline."""
+    pipeline, _ = get_pipeline(model_slug)
+    student_dict = student.model_dump()
+    baseline_dict = DEFAULT_STUDENT_PROFILE.copy()
+
+    batch_df = pd.DataFrame([student_dict, baseline_dict])
+    preds = np.clip(pipeline.predict(batch_df), 0.0, 100.0)
+    student_score = round(float(preds[0]), 1)
+    cohort_baseline_score = round(float(preds[1]), 1)
+    score_delta = round(student_score - cohort_baseline_score, 1)
+
+    # Normal-approximation percentile estimate relative to cohort distribution (std ~ 11.5 pts)
+    z_score = (student_score - cohort_baseline_score) / 11.5
+    estimated_percentile = round(float(np.clip(50.0 + 34.0 * np.tanh(0.85 * z_score), 1.0, 99.0)), 1)
+
+    habit_deltas = {
+        "hours_studied_delta": round(student.hours_studied - float(baseline_dict["hours_studied"]), 2),
+        "attendance_percent_delta": round(student.attendance_percent - float(baseline_dict["attendance_percent"]), 2),
+        "previous_score_delta": round(student.previous_score - float(baseline_dict["previous_score"]), 2),
+        "sleep_hours_delta": round(student.sleep_hours - float(baseline_dict["sleep_hours"]), 2),
+        "assignment_completion_delta": round(
+            student.assignment_completion_rate - float(baseline_dict["assignment_completion_rate"]), 2
+        ),
+    }
+
+    tier_name, _, _ = get_tier_details(student_score)
+    return {
+        "student_predicted_score": student_score,
+        "cohort_baseline_score": cohort_baseline_score,
+        "score_delta_vs_cohort": score_delta,
+        "estimated_percentile": estimated_percentile,
+        "standing_vs_cohort": "ABOVE_MEDIAN" if score_delta >= 0 else "BELOW_MEDIAN",
+        "grade_tier": tier_name,
+        "habit_deltas": habit_deltas,
+    }
+
+
+
 
 # Mount Production React Frontend if built
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
