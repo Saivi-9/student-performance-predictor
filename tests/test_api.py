@@ -192,5 +192,29 @@ def test_cohort_benchmark_endpoint():
     assert "hours_studied_delta" in data["habit_deltas"]
 
 
+def test_study_efficiency_audit_endpoint():
+    payload = {
+        "hours_studied": 18.0,
+        "attendance_percent": 92.0,
+        "previous_score": 81.0,
+        "quiz_average": 84.0,
+        "assignment_completion_rate": 90.0,
+        "practice_papers_solved": 6,
+        "sleep_hours": 5.5,
+        "screen_time_hours": 3.5,
+        "stress_level": 8,
+    }
+    res = client.post("/v1/predict/study-efficiency-audit", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.0 <= data["predicted_score"] <= 100.0
+    assert data["score_per_study_hour"] > 0.0
+    assert data["sleep_deficit_hours"] == 2.0
+    assert data["engagement_composite"] == 91.0
+    assert data["estimated_distraction_drag_pts"] == 2.7
+    assert data["burnout_risk_tier"] == "HIGH"
+
+
+
 
 
