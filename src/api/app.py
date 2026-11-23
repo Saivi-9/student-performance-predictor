@@ -761,6 +761,47 @@ def predict_cohort_benchmark(
     }
 
 
+@app.post("/v1/predict/study-efficiency-audit", tags=["Analytics"])
+def predict_study_efficiency_audit(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Audit a student's cognitive study yield, sleep-recovery ratio, distraction drag, and burnout risk tier."""
+    pipeline, _ = get_pipeline(model_slug)
+    student_dict = student.model_dump()
+    pred_score = round(float(np.clip(pipeline.predict(pd.DataFrame([student_dict]))[0], 0.0, 100.0)), 1)
+
+    effective_study_hours = max(student.hours_studied, 0.5)
+    score_per_study_hour = round(pred_score / effective_study_hours, 2)
+    sleep_deficit_hours = round(max(0.0, 7.5 - student.sleep_hours), 2)
+    sleep_recovery_ratio = round(student.sleep_hours / 8.0, 2)
+    engagement_composite = round(
+        0.5 * student.attendance_percent + 0.5 * student.assignment_completion_rate,
+        1,
+    )
+    distraction_drag_pts = round(max(0.0, (student.screen_time_hours - 1.5) * 1.35), 2)
+
+    if student.sleep_hours < 6.0 and (student.hours_studied >= 16.0 or student.stress_level >= 8):
+        burnout_risk = "HIGH"
+    elif student.sleep_hours < 6.8 or student.stress_level >= 7:
+        burnout_risk = "MODERATE"
+    else:
+        burnout_risk = "LOW"
+
+    tier_name, _, _ = get_tier_details(pred_score)
+    return {
+        "predicted_score": pred_score,
+        "grade_tier": tier_name,
+        "score_per_study_hour": score_per_study_hour,
+        "sleep_deficit_hours": sleep_deficit_hours,
+        "sleep_recovery_ratio": sleep_recovery_ratio,
+        "engagement_composite": engagement_composite,
+        "estimated_distraction_drag_pts": distraction_drag_pts,
+        "burnout_risk_tier": burnout_risk,
+    }
+
+
+
 
 
 # Mount Production React Frontend if built
