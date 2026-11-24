@@ -801,6 +801,55 @@ def predict_study_efficiency_audit(
     }
 
 
+@app.post("/v1/predict/grade-tier-readiness", tags=["Analytics"])
+def predict_grade_tier_readiness(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Quantify a student's proximity to the next higher academic grade tier and current tier safety buffer."""
+    pipeline, _ = get_pipeline(model_slug)
+    student_dict = student.model_dump()
+    pred_score = round(float(np.clip(pipeline.predict(pd.DataFrame([student_dict]))[0], 0.0, 100.0)), 1)
+
+    tier_thresholds = [
+        (90.0, "A+ (Distinction)"),
+        (80.0, "A (First-Class Honors)"),
+        (70.0, "B (Proficient)"),
+        (60.0, "C (Satisfactory)"),
+        (0.0, "D/F (At-Risk Intervention)"),
+    ]
+
+    current_floor = 0.0
+    next_tier_name = "Maximum Tier Achieved"
+    next_tier_threshold = 100.0
+    for idx, (floor, label) in enumerate(tier_thresholds):
+        if pred_score >= floor:
+            current_floor = floor
+            if idx > 0:
+                next_tier_threshold, next_tier_name = tier_thresholds[idx - 1]
+            break
+
+    points_to_next_tier = round(max(0.0, next_tier_threshold - pred_score), 1) if pred_score < 90.0 else 0.0
+    buffer_above_floor = round(max(0.0, pred_score - current_floor), 1)
+    # Approximate marginal gain ~ 1.45 score pts per additional study hour
+    est_extra_study_hours = round(points_to_next_tier / 1.45, 1) if points_to_next_tier > 0 else 0.0
+
+    tier_name, tier_label, _ = get_tier_details(pred_score)
+    return {
+        "predicted_score": pred_score,
+        "current_grade_tier": tier_name,
+        "current_tier_label": tier_label,
+        "current_tier_floor": current_floor,
+        "buffer_above_tier_floor": buffer_above_floor,
+        "next_grade_tier": next_tier_name,
+        "next_tier_threshold": next_tier_threshold,
+        "points_to_next_tier": points_to_next_tier,
+        "estimated_additional_study_hours": est_extra_study_hours,
+        "at_top_tier": pred_score >= 90.0,
+    }
+
+
+
 
 
 
