@@ -215,6 +215,27 @@ def test_study_efficiency_audit_endpoint():
     assert data["burnout_risk_tier"] == "HIGH"
 
 
+def test_grade_tier_readiness_endpoint():
+    payload = {
+        "hours_studied": 11.0,
+        "attendance_percent": 86.0,
+        "previous_score": 76.0,
+        "quiz_average": 78.0,
+        "assignment_completion_rate": 84.0,
+        "practice_papers_solved": 4,
+        "sleep_hours": 7.5,
+    }
+    res = client.post("/v1/predict/grade-tier-readiness", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.0 <= data["predicted_score"] <= 100.0
+    assert data["buffer_above_tier_floor"] >= 0.0
+    assert data["points_to_next_tier"] >= 0.0
+    assert data["estimated_additional_study_hours"] >= 0.0
+    assert isinstance(data["at_top_tier"], bool)
+
+
+
 
 
 
