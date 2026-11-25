@@ -235,6 +235,28 @@ def test_grade_tier_readiness_endpoint():
     assert isinstance(data["at_top_tier"], bool)
 
 
+def test_attendance_coursework_synergy_endpoint():
+    payload = {
+        "hours_studied": 10.0,
+        "attendance_percent": 72.0,
+        "previous_score": 74.0,
+        "quiz_average": 78.5,
+        "assignment_completion_rate": 70.0,
+        "practice_papers_solved": 4,
+        "sleep_hours": 7.5,
+    }
+    res = client.post("/v1/predict/attendance-coursework-synergy", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.0 <= data["predicted_score"] <= 100.0
+    assert data["attendance_completion_synergy_index"] == 70.99
+    assert data["formative_momentum_delta"] == 4.5
+    assert data["syllabus_coverage_risk"] == "HIGH"
+    assert data["projected_score_at_95_synergy"] >= data["predicted_score"]
+    assert data["synergy_unlock_gain_pts"] >= 0.0
+
+
+
 
 
 

@@ -849,6 +849,47 @@ def predict_grade_tier_readiness(
     }
 
 
+@app.post("/v1/predict/attendance-coursework-synergy", tags=["Analytics"])
+def predict_attendance_coursework_synergy(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Quantify the harmonic synergy between lecture attendance and assignment completion and project 95%+ mastery gains."""
+    pipeline, _ = get_pipeline(model_slug)
+    student_dict = student.model_dump()
+    pred_score = round(float(np.clip(pipeline.predict(pd.DataFrame([student_dict]))[0], 0.0, 100.0)), 1)
+
+    att = max(float(student.attendance_percent), 1.0)
+    comp = max(float(student.assignment_completion_rate), 1.0)
+    harmonic_synergy = round((2.0 * att * comp) / (att + comp), 2)
+    formative_momentum = round(float(student.quiz_average) - float(student.previous_score), 1)
+
+    optimized_dict = student_dict.copy()
+    optimized_dict["attendance_percent"] = max(att, 95.0)
+    optimized_dict["assignment_completion_rate"] = max(comp, 95.0)
+    projected_95 = round(float(np.clip(pipeline.predict(pd.DataFrame([optimized_dict]))[0], 0.0, 100.0)), 1)
+    synergy_unlock_gain = round(max(0.0, projected_95 - pred_score), 1)
+
+    if harmonic_synergy < 75.0:
+        coverage_risk = "HIGH"
+    elif harmonic_synergy < 86.0:
+        coverage_risk = "MODERATE"
+    else:
+        coverage_risk = "LOW"
+
+    tier_name, _, _ = get_tier_details(pred_score)
+    return {
+        "predicted_score": pred_score,
+        "grade_tier": tier_name,
+        "attendance_completion_synergy_index": harmonic_synergy,
+        "formative_momentum_delta": formative_momentum,
+        "syllabus_coverage_risk": coverage_risk,
+        "projected_score_at_95_synergy": projected_95,
+        "synergy_unlock_gain_pts": synergy_unlock_gain,
+    }
+
+
+
 
 
 
