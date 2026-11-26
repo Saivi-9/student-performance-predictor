@@ -256,6 +256,30 @@ def test_attendance_coursework_synergy_endpoint():
     assert data["synergy_unlock_gain_pts"] >= 0.0
 
 
+def test_sleep_cognitive_recovery_endpoint():
+    payload = {
+        "hours_studied": 12.0,
+        "attendance_percent": 88.0,
+        "previous_score": 76.0,
+        "quiz_average": 78.0,
+        "assignment_completion_rate": 85.0,
+        "practice_papers_solved": 4,
+        "sleep_hours": 5.5,
+        "screen_time_hours": 5.5,
+        "stress_level": 8,
+    }
+    res = client.post("/v1/predict/sleep-cognitive-recovery", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.0 <= data["predicted_score"] <= 100.0
+    assert data["sleep_deficit_hours"] == 2.5
+    assert data["cognitive_fatigue_tier"] == "HIGH_COGNITIVE_FATIGUE"
+    assert 0.65 <= data["cognitive_retention_multiplier"] <= 1.0
+    assert data["projected_score_with_optimal_recovery"] >= data["predicted_score"]
+    assert data["sleep_recovery_gain_pts"] >= 0.0
+
+
+
 
 
 

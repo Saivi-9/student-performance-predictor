@@ -889,6 +889,55 @@ def predict_attendance_coursework_synergy(
     }
 
 
+@app.post("/v1/predict/sleep-cognitive-recovery", tags=["Analytics"])
+def predict_sleep_cognitive_recovery(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Quantify sleep-study cognitive equilibrium and project exam score gain under an optimal 8.0-hour sleep schedule with reduced screen fatigue."""
+    pipeline, _ = get_pipeline(model_slug)
+    student_dict = student.model_dump()
+    pred_score = round(float(np.clip(pipeline.predict(pd.DataFrame([student_dict]))[0], 0.0, 100.0)), 1)
+
+    sleep_hrs = float(student.sleep_hours)
+    study_hrs = max(0.5, float(student.hours_studied))
+    screen_hrs = float(student.screen_time_hours)
+
+    sleep_deficit = round(max(0.0, 8.0 - sleep_hrs), 2)
+    cognitive_retention_multiplier = round(
+        float(np.clip(1.0 - 0.06 * sleep_deficit - 0.02 * max(0.0, screen_hrs - 2.0), 0.65, 1.05)),
+        3,
+    )
+    sleep_to_study_ratio = round(sleep_hrs / study_hrs, 2)
+
+    restored_dict = student_dict.copy()
+    restored_dict["sleep_hours"] = 8.0
+    restored_dict["screen_time_hours"] = min(screen_hrs, 2.0)
+    restored_dict["stress_level"] = min(int(student.stress_level), 4)
+    projected_restored = round(float(np.clip(pipeline.predict(pd.DataFrame([restored_dict]))[0], 0.0, 100.0)), 1)
+    recovery_gain = round(max(0.0, projected_restored - pred_score), 1)
+
+    if sleep_deficit >= 2.0 or screen_hrs >= 5.0:
+        fatigue_tier = "HIGH_COGNITIVE_FATIGUE"
+    elif sleep_deficit >= 1.0 or screen_hrs >= 3.5:
+        fatigue_tier = "MODERATE_SLEEP_DEBT"
+    else:
+        fatigue_tier = "OPTIMAL_RECOVERY_BALANCE"
+
+    tier_name, _, _ = get_tier_details(pred_score)
+    return {
+        "predicted_score": pred_score,
+        "grade_tier": tier_name,
+        "sleep_deficit_hours": sleep_deficit,
+        "sleep_to_study_ratio": sleep_to_study_ratio,
+        "cognitive_retention_multiplier": cognitive_retention_multiplier,
+        "cognitive_fatigue_tier": fatigue_tier,
+        "projected_score_with_optimal_recovery": projected_restored,
+        "sleep_recovery_gain_pts": recovery_gain,
+    }
+
+
+
 
 
 
