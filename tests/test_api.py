@@ -279,6 +279,27 @@ def test_sleep_cognitive_recovery_endpoint():
     assert data["sleep_recovery_gain_pts"] >= 0.0
 
 
+def test_practice_mastery_roi_endpoint():
+    payload = {
+        "hours_studied": 10.0,
+        "attendance_percent": 85.0,
+        "previous_score": 72.0,
+        "quiz_average": 73.0,
+        "assignment_completion_rate": 82.0,
+        "practice_papers_solved": 2,
+        "tutoring_sessions": 0,
+        "sleep_hours": 7.5,
+    }
+    res = client.post("/v1/predict/practice-mastery-roi", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+    assert 0.0 <= data["predicted_score"] <= 100.0
+    assert data["practice_mastery_tier"] == "LOW_PRACTICE_VOLUME"
+    assert data["projected_score_at_full_practice"] >= data["predicted_score"]
+    assert data["practice_mastery_gain_pts"] >= 0.0
+
+
+
 
 
 
