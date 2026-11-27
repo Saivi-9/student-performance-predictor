@@ -937,6 +937,50 @@ def predict_sleep_cognitive_recovery(
     }
 
 
+@app.post("/v1/predict/practice-mastery-roi", tags=["Analytics"])
+def predict_practice_mastery_roi(
+    student: StudentInput,
+    model_slug: Optional[str] = Query(default=None),
+):
+    """Quantify active-recall practice paper efficiency and tutoring ROI, projecting score gains at high-mastery practice volume."""
+    pipeline, _ = get_pipeline(model_slug)
+    student_dict = student.model_dump()
+    pred_score = round(float(np.clip(pipeline.predict(pd.DataFrame([student_dict]))[0], 0.0, 100.0)), 1)
+
+    papers = int(student.practice_papers_solved)
+    tutoring = int(student.tutoring_sessions)
+    study_hrs = max(0.5, float(student.hours_studied))
+
+    active_recall_density = round((papers + 1.5 * tutoring) / study_hrs, 3)
+
+    mastery_dict = student_dict.copy()
+    mastery_dict["practice_papers_solved"] = max(papers, 10)
+    mastery_dict["tutoring_sessions"] = max(tutoring, 3)
+    mastery_dict["quiz_average"] = min(100.0, max(float(student.quiz_average), float(student.previous_score) + 6.0))
+    projected_mastery = round(float(np.clip(pipeline.predict(pd.DataFrame([mastery_dict]))[0], 0.0, 100.0)), 1)
+    mastery_gain_pts = round(max(0.0, projected_mastery - pred_score), 1)
+
+    if papers >= 7 and active_recall_density >= 0.65:
+        practice_tier = "HIGH_ACTIVE_RECALL_MASTERY"
+    elif papers >= 4:
+        practice_tier = "MODERATE_PRACTICE_EXPOSURE"
+    else:
+        practice_tier = "LOW_PRACTICE_VOLUME"
+
+    tier_name, _, _ = get_tier_details(pred_score)
+    return {
+        "predicted_score": pred_score,
+        "grade_tier": tier_name,
+        "practice_papers_solved": papers,
+        "tutoring_sessions": tutoring,
+        "active_recall_density": active_recall_density,
+        "practice_mastery_tier": practice_tier,
+        "projected_score_at_full_practice": projected_mastery,
+        "practice_mastery_gain_pts": mastery_gain_pts,
+    }
+
+
+
 
 
 
